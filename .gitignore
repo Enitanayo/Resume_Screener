@@ -15,3 +15,8 @@ backend/tests/
 backend/scripts/
 # SQLite
 *.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
