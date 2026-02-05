@@ -1,0 +1,17 @@
+# Env files
+.env
+backend/.env
+
+# Virtualenv
+backend/venv/
+
+#logs
+backend/logs/
+
+backend/uploads/
+
+backend/tests/
+
+backend/scripts/
+# SQLite
+*.db
