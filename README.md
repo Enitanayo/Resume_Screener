@@ -25,10 +25,10 @@ This backend facilitates Resume Screening using **Appwrite** for data/auth and *
     -   Appwrite Cloud Account (Project ID, API Key)
 
 2.  **Environment Variables**:
-    Copy `.env.example` to `backend/.env` and fill in the details.
+    rename `.env.example` to `env` and fill in the details.
     
     ```bash
-    cp .env.example backend/.env
+    cp .env.example env
     ```
 
 3.  **Start Services**:
@@ -58,7 +58,7 @@ This backend facilitates Resume Screening using **Appwrite** for data/auth and *
     # Linux/Mac
     rq worker resumes --url redis://localhost:6379/0
 
-    # Windows (os.fork() is not supported)
+    # Windows
     rq worker resumes --worker-class rq.SimpleWorker --url redis://localhost:6379/0
     ```
 
@@ -74,7 +74,3 @@ Run tests using pytest:
 # Run v2 API tests
 python -m pytest backend/tests/test_api_v2.py
 ```
-
-## Migration
-
-See `MIGRATION.md` for details on moving from v1.
