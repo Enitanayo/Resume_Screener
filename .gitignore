@@ -1,22 +1,29 @@
 # Env files
-.env
-backend/.env
+*.env
+# backend/.env
 
 # Virtualenv
-backend/venv/
+venv/
 
 #logs
-backend/logs/
+logs/
 
-backend/uploads/
+uploads/
 
-backend/tests/
+tests/
 
 backend/scripts/
 # SQLite
 *.db
 
+.pytest_cache
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.log
+.DS_Store
+
+# OS
+Thumbs.db
+

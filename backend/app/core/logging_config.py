@@ -58,5 +58,12 @@ def setup_logging():
     
     # Optional: Silence uvicorn access logs if they are too noisy, or keep INFO
     # logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-
+    
+    # Force uvicorn logs to propagate to root logger (so they appear in file)
+    for log_name in ["uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"]:
+        log = logging.getLogger(log_name)
+        log.propagate = True
+        # Ensure they don't have duplicate handlers if uvicorn set them up
+        # We can leave them; propagation means they go to root too.
+        
     return logger
