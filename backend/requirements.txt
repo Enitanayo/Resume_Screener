@@ -12,7 +12,7 @@ pydantic-settings
 python-dotenv
 pytest
 httpx
-google-generativeai
+google-genai
 pypdf
 python-docx
 tenacity

@@ -44,6 +44,7 @@ class VectorStore:
         Upserts an embedding into Qdrant. Returns the vector ID (UUID).
         """
         vector_id = str(uuid.uuid4())
+        logger.info(f"Upserting embedding for candidate {metadata.get('candidate_id')} (vector_id: {vector_id})")
         
         self.client.upsert(
             collection_name=self.collection_name,
@@ -62,6 +63,7 @@ class VectorStore:
         Search for similar vectors. 
         Returns list of (id, score, metadata).
         """
+        logger.info(f"Searching vectors with top_k={top_k}, filter={filter_metadata}")
         response = self.client.query_points(
             collection_name=self.collection_name,
             query=query_embedding,

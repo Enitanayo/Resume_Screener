@@ -4,9 +4,13 @@ from appwrite.services.storage import Storage
 from appwrite.services.account import Account
 from appwrite.services.users import Users
 from .config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AppwriteService:
     def __init__(self):
+        logger.info("Initializing Appwrite Service...")
         self.client = Client()
         self.client.set_endpoint(settings.APPWRITE_ENDPOINT)
         self.client.set_project(settings.APPWRITE_PROJECT_ID)

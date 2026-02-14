@@ -2,7 +2,8 @@ import os
 import re
 import json
 import logging
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 from typing import Dict, List, Optional, Any
 
@@ -28,8 +29,7 @@ class ResumeParser:
     def __init__(self):
         api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
         if api_key:
-            genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-2.5-flash')
+            self.client = genai.Client(api_key=api_key)
             self.has_llm = True
         else:
             logger.warning("No Gemini API Key found. Falling back to Regex-only mode.")
@@ -40,12 +40,14 @@ class ResumeParser:
         Main entry point for parsing.
         """
         try:
+            logger.info(f"Starting resume parsing for: {file_path}")
             raw_text = self._extract_text(file_path)
         except Exception as e:
             logger.error(f"Text extraction failed: {e}")
             return {"error": f"Failed to read file: {str(e)}"}
 
         clean_text = self._clean_text(raw_text)
+        logger.info(f"Text extracted successfully ({len(clean_text)} chars). Proceeding to structured extraction.")
         
         # Layer 1: Deterministic Regex (Always run these)
         basics = {
@@ -73,6 +75,18 @@ class ResumeParser:
         # Consolidate
         result = {**basics, **llm_data}
         result["raw_text"] = clean_text # Store raw text for search/debugging
+        '''
+        result contains the following
+        - email
+        - phone
+        - links
+        - name: Full name of the candidate.
+        - skills: List[str] of technical skills, languages, tools.
+        - experience_years: Float estimate of total years of experience.
+        - summary: A concise 2-sentence professional summary of the candidate.
+        - education: List of degrees/universities.
+        - raw_text
+        '''
         
         return result
 
@@ -138,9 +152,12 @@ class ResumeParser:
         """ 
         # Truncate to avoid token limits if extremely large, though Flash context is huge.
 
-        response = self.model.generate_content(
-            prompt,
-            generation_config={"response_mime_type": "application/json"}
+        response = self.client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
         )
         
         return json.loads(response.text)

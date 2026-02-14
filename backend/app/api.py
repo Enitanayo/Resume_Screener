@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, BackgroundTasks, Header
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Header #, status, BackgroundTasks
 from typing import List, Optional
-import os
-import shutil
+# import os
+# import shutil
 import uuid
-import json
-from datetime import datetime
+# import json
+# from datetime import datetime
 
 from .core.config import settings
 from .core.appwrite import appwrite_service
 from .core.auth import get_current_user, require_recruiter
-from .schemas import Job, JobCreate, Candidate, CandidateCreate, Application, ApplicationCreate
+from .schemas import Job, JobCreate #, Candidate, CandidateCreate, Application, ApplicationCreate
 from .worker import queue, parse_resume_and_index
 from .services.vector_store import vector_store
 from .services.embeddings import embedding_service
@@ -29,12 +29,15 @@ def create_job(job: JobCreate, user: dict = Depends(require_recruiter)):
     job_data = job.dict()
     job_data['recruiter_id'] = user['$id']
     
+    logger.info(f"Creating job: {job.title} for recruiter: {user['$id']}")
+
     doc = db.create_document(
         database_id=settings.DATABASE_ID,
         collection_id=settings.JOBS_COLLECTION_ID,
         document_id=ID.unique(),
         data=job_data
     )
+    logger.info(f"Job created successfully: {doc['$id']}")
     return doc
 
 @router.get("/jobs/", response_model=List[Job])
@@ -85,6 +88,7 @@ async def apply_to_job_endpoint(
     phone: Optional[str] = None,
     x_appwrite_jwt: Optional[str] = Header(None) # Manual check to allow guest
 ):
+    logger.info(f"Received application for job: {job_id}, file: {file.filename}")
     # 1. Check Auth (Candidate vs Guest)
     user_id = "guest"
     try:
@@ -162,6 +166,7 @@ async def apply_to_job_endpoint(
     # 5. Enqueue Task
     queue.enqueue(parse_resume_and_index, application_doc['$id'])
 
+    logger.info(f"Application processed successfully: {application_doc['$id']}")
     return {"message": "Application received", "application_id": application_doc['$id']}
 
 # --- Match / Search ---
@@ -177,6 +182,8 @@ def match_candidates(job_id: str, user: dict = Depends(require_recruiter)):
         document_id=job_id
     )
     
+    logger.info(f"Matching candidates for job: {job.get('title', job_id)} ({job_id})")
+    
     # Generate Embedding for job description
     # Ideally should cache this
     query_text = f"{job['title']} {job['requirements']} {job['description']}"
@@ -189,6 +196,8 @@ def match_candidates(job_id: str, user: dict = Depends(require_recruiter)):
         filter_metadata={"job_id": job_id}  
     ) 
     
+    logger.info(f"Found {len(results)} candidates for job {job_id}")
+
     # Fetch full candidate details from Appwrite or just return metadata
     # Metadata has basic info.
     
